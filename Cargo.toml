@@ -17,10 +17,10 @@ edition = "2018"
 all-features = true
 
 [dependencies]
-async-compression = { version = "0.3.1", features = ["brotli", "deflate", "gzip", "stream"], optional = true }
+async-compression = { git = "https://github.com/blacktemplar/async-compression", branch = "lighthouse", features = ["brotli", "deflate", "gzip", "stream"], optional = true }
 bytes = "0.6"
 futures = { version = "0.3", default-features = false, features = ["alloc"] }
-headers = "0.3"
+headers = { git = "https://github.com/blacktemplar/headers", branch = "lighthouse" }
 hyper = { git = "https://github.com/sigp/hyper", branch = "lighthouse", features = ["stream"] }
 http = { git = "https://github.com/agemanning/http", branch = "lighthouse" }
 log = "0.4"

@@ -489,7 +489,7 @@ unit_error! {
 #[cfg(test)]
 mod tests {
     use super::sanitize_path;
-    use bytes::BytesMut;
+    //use bytes::BytesMut;
 
     #[test]
     fn test_sanitize_path() {
@@ -510,7 +510,7 @@ mod tests {
         sanitize_path(base, "/C:\\/foo.html").expect_err("C:\\");
     }
 
-    #[test]
+    /*#[test]
     fn test_reserve_at_least() {
         let mut buf = BytesMut::new();
         let cap = 8_192;
@@ -521,5 +521,5 @@ mod tests {
         super::reserve_at_least(&mut buf, cap);
         assert_eq!(buf.len(), 0);
         assert_eq!(buf.capacity(), cap);
-    }
+    }*/
 }
