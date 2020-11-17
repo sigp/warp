@@ -21,8 +21,8 @@ async-compression = { version = "0.3.1", features = ["brotli", "deflate", "gzip"
 bytes = "0.6"
 futures = { version = "0.3", default-features = false, features = ["alloc"] }
 headers = "0.3"
-http = "0.2"
 hyper = { git = "https://github.com/sigp/hyper", branch = "lighthouse", features = ["stream"] }
+http = { git = "https://github.com/agemanning/http", branch = "lighthouse" }
 log = "0.4"
 mime = "0.3"
 mime_guess = "2.0.0"
@@ -93,8 +93,3 @@ name = "query_string"
 
 [patch.crates-io]
 http = { git = "https://github.com/agemanning/http", branch = "lighthouse" }
-http-body = { git = "https://github.com/agemanning/http-body", branch = "lighthouse" }
-h2 = { git = "https://github.com/agemanning/h2", branch = "lighthouse" }
-
-[patch."https://github.com/hyperium/h2"]
-h2 = { git = "https://github.com/agemanning/h2", branch = "lighthouse" }
