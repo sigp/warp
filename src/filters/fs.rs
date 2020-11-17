@@ -10,7 +10,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 use std::task::Poll;
 
-use bytes::{BufMut, Bytes, BytesMut};
+use bytes::Bytes;
 use futures::future::Either;
 use futures::{future, ready, stream, FutureExt, Stream, StreamExt, TryFutureExt};
 use headers::{
@@ -22,8 +22,7 @@ use hyper::Body;
 use mime_guess;
 use percent_encoding::percent_decode_str;
 use tokio::fs::File as TkFile;
-use tokio::io::{AsyncRead, AsyncSeekExt, ReadBuf};
-use tokio_util::io::poll_read_buf;
+use tokio::io::AsyncSeekExt;
 
 use crate::filter::{Filter, FilterClone, One};
 use crate::reject::{self, Rejection};
@@ -407,7 +406,6 @@ fn file_stream(
 
     seek.into_stream()
         .map(move |result| {
-            let mut buf = BytesMut::new();
             let mut len = end - start;
             let mut f = match result {
                 Ok(f) => f,
@@ -418,10 +416,16 @@ fn file_stream(
                 if len == 0 {
                     return Poll::Ready(None);
                 }
-                reserve_at_least(&mut buf, buf_size);
+                let mut buffer = vec![0; buf_size];
+                let mut buf = tokio::io::ReadBuf::new(&mut buffer);
+                //reserve_at_least(&mut buf, buf_size);
 
-                let n = match ready!(poll_read_buf(Pin::new(&mut f), cx, &mut buf)) {
-                    Ok(n) => n as u64,
+                let n = match ready!(tokio::io::AsyncRead::poll_read(
+                    Pin::new(&mut f),
+                    cx,
+                    &mut buf
+                )) {
+                    Ok(_) => buf.filled().len() as u64,
                     Err(err) => {
                         tracing::debug!("file read error: {}", err);
                         return Poll::Ready(Some(Err(err)));
@@ -433,24 +437,18 @@ fn file_stream(
                     return Poll::Ready(None);
                 }
 
-                let mut chunk = buf.split().freeze();
+                let mut chunk = buf.filled();
                 if n > len {
-                    chunk = chunk.split_to(len as usize);
+                    chunk = &chunk[..len as usize];
                     len = 0;
                 } else {
                     len -= n;
                 }
 
-                Poll::Ready(Some(Ok(chunk)))
+                Poll::Ready(Some(Ok(Bytes::copy_from_slice(chunk))))
             }))
         })
         .flatten()
-}
-
-fn reserve_at_least(buf: &mut BytesMut, cap: usize) {
-    if buf.capacity() - buf.len() < cap {
-        buf.reserve(cap);
-    }
 }
 
 const DEFAULT_READ_BUF_SIZE: usize = 8_192;
